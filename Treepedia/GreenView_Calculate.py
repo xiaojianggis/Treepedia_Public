@@ -197,7 +197,7 @@ def GreenViewComputing_ogr_6Horizon(GSVinfoFolder, outTXTRoot, greenmonth, key_f
     
     # the input GSV info should be in a folder
     if not os.path.isdir(GSVinfoFolder):
-        print 'You should input a folder for GSV metadata'
+        print ('You should input a folder for GSV metadata')
         return
     else:
         allTxtFiles = os.listdir(GSVinfoFolder)
@@ -244,7 +244,7 @@ def GreenViewComputing_ogr_6Horizon(GSVinfoFolder, outTXTRoot, greenmonth, key_f
             
             
             # check whether the file already generated, if yes, skip. Therefore, you can run several process at same time using this code.
-            print GreenViewTxtFile
+            print (GreenViewTxtFile)
             if os.path.exists(GreenViewTxtFile):
                 continue
             
@@ -264,10 +264,10 @@ def GreenViewComputing_ogr_6Horizon(GSVinfoFolder, outTXTRoot, greenmonth, key_f
                     greenPercent = 0.0
 
                     for heading in headingArr:
-                        print "Heading is: ",heading
+                        print ("Heading is: ",heading)
                         
                         # using different keys for different process, each key can only request 25,000 imgs every 24 hours
-                        URL = "http://maps.googleapis.com/maps/api/streetview?size=400x400&pano=%s&fov=60&heading=%d&pitch=%d&sensor=false&key=AIzaSyAwLr6Oz0omObrCJ4n6lI4VbCCvmaL1Z3Y"%(panoID,heading,pitch)
+                        URL = "http://maps.googleapis.com/maps/api/streetview?size=400x400&pano=%s&fov=60&heading=%d&pitch=%d&sensor=false&key=%s"%(panoID,heading,pitch, key)
                         
                         # let the code to pause by 1s, in order to not go over data limitation of Google quota
                         time.sleep(1)
@@ -286,7 +286,7 @@ def GreenViewComputing_ogr_6Horizon(GSVinfoFolder, outTXTRoot, greenmonth, key_f
 
                     # calculate the green view index by averaging six percents from six images
                     greenViewVal = greenPercent/numGSVImg
-                    print 'The greenview: %s, pano: %s, (%s, %s)'%(greenViewVal, panoID, lat, lon)
+                    print ('The greenview: %s, pano: %s, (%s, %s)'%(greenViewVal, panoID, lat, lon))
 
                     # write the result and the pano info to the result txt file
                     lineTxt = 'panoID: %s panoDate: %s longitude: %s latitude: %s, greenview: %s\n'%(panoID, panoDate, lon, lat, greenViewVal)
