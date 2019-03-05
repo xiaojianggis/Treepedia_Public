@@ -45,7 +45,7 @@ def Read_GSVinfo_Text(GVI_Res_txt):
             continue
         
         elif float(greenView) < 0:
-            print greenView
+            print (greenView)
             continue
         
         # remove the duplicated panorama id
@@ -138,10 +138,11 @@ def CreatePointFeature_ogr(outputShapefile,LonLst,LatLst,panoIDlist,panoDateList
 
     import ogr
     import osr
-
+    import os, os.path
+    
     # create shapefile and add the above chosen random points to the shapfile
     driver = ogr.GetDriverByName("ESRI Shapefile")
-
+    
     # create new shapefile
     if os.path.exists(outputShapefile):
         driver.DeleteDataSource(outputShapefile)
@@ -153,7 +154,7 @@ def CreatePointFeature_ogr(outputShapefile,LonLst,LatLst,panoIDlist,panoDateList
     outLayer = data_source.CreateLayer(lyrname, targetSpatialRef, ogr.wkbPoint)
     numPnt = len(LonLst)
 
-    print 'the number of points is:',numPnt
+    print ('the number of points is:',numPnt)
 
     if numPnt > 0:
         # create a field
@@ -191,13 +192,95 @@ def CreatePointFeature_ogr(outputShapefile,LonLst,LatLst,panoIDlist,panoDateList
 
             outLayer.CreateFeature(outFeature)
             outFeature.Destroy()
-
+            
         data_source.Destroy()
-
+        
     else:
-        print 'You created a empty shapefile'
+        print ('You created a empty shapefile')
 
 
+def CreatePointFeature_fiona(outputShapefile,LonLst,LatLst,panoIDlist,panoDateList,greenViewList,lyrname):
+
+    """
+    Create a shapefile based on the template of inputShapefile
+    This function will delete existing outpuShapefile and create a new shapefile containing points with
+    panoID, panoDate, and green view as respective fields.
+    
+    Parameters:
+    outputShapefile: the file path of the output shapefile name, example 'd:\greenview.shp'
+      LonLst: the longitude list
+      LatLst: the latitude list
+      panoIDlist: the panorama id list
+      panoDateList: the panodate list
+      greenViewList: the green view index result list, all these lists can be generated from the function of 'Read_GVI_res'
+    
+    Copyright(c) Xiaojiang Li, Senseable city lab
+    
+    last modified by Xiaojiang li, MIT Senseable City Lab on March 27, 2018
+    
+    """
+
+    import ogr
+    import osr
+    import os, os.path
+    
+    # create shapefile and add the above chosen random points to the shapfile
+    driver = ogr.GetDriverByName("ESRI Shapefile")
+    
+    # create new shapefile
+    if os.path.exists(outputShapefile):
+        driver.DeleteDataSource(outputShapefile)
+
+    data_source = driver.CreateDataSource(outputShapefile)
+    targetSpatialRef = osr.SpatialReference()
+    targetSpatialRef.ImportFromEPSG(4326)
+
+    outLayer = data_source.CreateLayer(lyrname, targetSpatialRef, ogr.wkbPoint)
+    numPnt = len(LonLst)
+
+    print ('the number of points is:',numPnt)
+
+    if numPnt > 0:
+        # create a field
+        idField = ogr.FieldDefn('PntNum', ogr.OFTInteger)
+        panoID_Field = ogr.FieldDefn('panoID', ogr.OFTString)
+        panoDate_Field = ogr.FieldDefn('panoDate', ogr.OFTString)
+        greenView_Field = ogr.FieldDefn('greenView',ogr.OFTReal)
+        outLayer.CreateField(idField)
+        outLayer.CreateField(panoID_Field)
+        outLayer.CreateField(panoDate_Field)
+        outLayer.CreateField(greenView_Field)
+        
+        for idx in range(numPnt):
+            #create point geometry
+            point = ogr.Geometry(ogr.wkbPoint)
+
+            # in case of the returned panoLon and PanoLat are invalid
+            if len(LonLst[idx]) < 3:
+                continue      
+        
+            point.AddPoint(float(LonLst[idx]),float(LatLst[idx]))
+            
+            # Create the feature and set values
+            featureDefn = outLayer.GetLayerDefn()
+            outFeature = ogr.Feature(featureDefn)
+            outFeature.SetGeometry(point)
+            outFeature.SetField('PntNum', idx)
+            outFeature.SetField('panoID', panoIDlist[idx])
+            outFeature.SetField('panoDate',panoDateList[idx])
+
+            if len(greenViewList) == 0:
+                outFeature.SetField('greenView',-999)
+            else:
+                outFeature.SetField('greenView',float(greenViewList[idx]))
+
+            outLayer.CreateFeature(outFeature)
+            outFeature.Destroy()
+            
+        data_source.Destroy()
+        
+    else:
+        print ('You created a empty shapefile')
 
 
 ## ----------------- Main function ------------------------
