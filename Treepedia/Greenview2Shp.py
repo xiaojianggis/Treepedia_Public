@@ -199,88 +199,64 @@ def CreatePointFeature_ogr(outputShapefile,LonLst,LatLst,panoIDlist,panoDateList
         print ('You created a empty shapefile')
 
 
-def CreatePointFeature_fiona(outputShapefile,LonLst,LatLst,panoIDlist,panoDateList,greenViewList,lyrname):
+def CreatePointFeature_fiona(outputShapefile,panoLonList,panoLatList,panoIdList,panoDateList,greenViewList):
 
     """
-    Create a shapefile based on the template of inputShapefile
-    This function will delete existing outpuShapefile and create a new shapefile containing points with
+    This function create shapefile using fiona
     panoID, panoDate, and green view as respective fields.
     
     Parameters:
     outputShapefile: the file path of the output shapefile name, example 'd:\greenview.shp'
-      LonLst: the longitude list
-      LatLst: the latitude list
-      panoIDlist: the panorama id list
+      panoLonList: the longitude list
+      panoLatList: the latitude list
+      panoIdList: the panorama id list
       panoDateList: the panodate list
       greenViewList: the green view index result list, all these lists can be generated from the function of 'Read_GVI_res'
     
     Copyright(c) Xiaojiang Li, Senseable city lab
     
-    last modified by Xiaojiang li, MIT Senseable City Lab on March 27, 2018
+    last modified by Xiaojiang li, MIT Senseable City Lab on March 4, 2019
     
     """
-
-    import ogr
-    import osr
+    
     import os, os.path
-    
-    # create shapefile and add the above chosen random points to the shapfile
-    driver = ogr.GetDriverByName("ESRI Shapefile")
-    
-    # create new shapefile
-    if os.path.exists(outputShapefile):
-        driver.DeleteDataSource(outputShapefile)
+    import fiona
+    from shapely.geometry import Point, mapping
 
-    data_source = driver.CreateDataSource(outputShapefile)
-    targetSpatialRef = osr.SpatialReference()
-    targetSpatialRef.ImportFromEPSG(4326)
+    # create shapefile using fiona
+    schema = {
+        'geometry': 'Point',
+        'properties': {
+            'PntNum': 'int:9',
+            'panoID': 'str: 20',
+            'panoDate': 'str:8',
+            'greenView': 'float:15.2'
+        }
+    }
 
-    outLayer = data_source.CreateLayer(lyrname, targetSpatialRef, ogr.wkbPoint)
-    numPnt = len(LonLst)
+    crs = {'init': u'epsg:4326'}
 
-    print ('the number of points is:',numPnt)
+    numPnt = len(panoLonList)
 
-    if numPnt > 0:
-        # create a field
-        idField = ogr.FieldDefn('PntNum', ogr.OFTInteger)
-        panoID_Field = ogr.FieldDefn('panoID', ogr.OFTString)
-        panoDate_Field = ogr.FieldDefn('panoDate', ogr.OFTString)
-        greenView_Field = ogr.FieldDefn('greenView',ogr.OFTReal)
-        outLayer.CreateField(idField)
-        outLayer.CreateField(panoID_Field)
-        outLayer.CreateField(panoDate_Field)
-        outLayer.CreateField(greenView_Field)
-        
+    with fiona.open(outputShapefile, 'w', driver = "ESRI Shapefile", crs = crs, schema=schema) as output:
         for idx in range(numPnt):
-            #create point geometry
-            point = ogr.Geometry(ogr.wkbPoint)
+            lon = float(panoLonList[idx])
+            lat = float(panoLatList[idx])
+            panoID = panoIdList[idx]
+            panoDate = panoDateList[idx]
+            gvi = greenViewList[idx]
 
-            # in case of the returned panoLon and PanoLat are invalid
-            if len(LonLst[idx]) < 3:
-                continue      
-        
-            point.AddPoint(float(LonLst[idx]),float(LatLst[idx]))
-            
-            # Create the feature and set values
-            featureDefn = outLayer.GetLayerDefn()
-            outFeature = ogr.Feature(featureDefn)
-            outFeature.SetGeometry(point)
-            outFeature.SetField('PntNum', idx)
-            outFeature.SetField('panoID', panoIDlist[idx])
-            outFeature.SetField('panoDate',panoDateList[idx])
+            point = Point(float(lon), float(lat))
+            output.write({'properties':{'PntNum': idx,
+                                        'panoID': panoID,
+                                        'panoDate': panoDate,
+                                        'greenView': gvi
+                                        },
+                          'geometry': mapping(point)
+                         })
 
-            if len(greenViewList) == 0:
-                outFeature.SetField('greenView',-999)
-            else:
-                outFeature.SetField('greenView',float(greenViewList[idx]))
+    print ('You have export the shapefile successfully')
 
-            outLayer.CreateFeature(outFeature)
-            outFeature.Destroy()
-            
-        data_source.Destroy()
-        
-    else:
-        print ('You created a empty shapefile')
 
 
 ## ----------------- Main function ------------------------
