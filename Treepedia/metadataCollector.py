@@ -148,12 +148,11 @@ if __name__ == "__main__":
 
     print(inputshp, outdir, key)
     GSVpanoMetadataCollector(inputshp, 1000, outdir, key)
-    
-    
+
+
     ## call example
     # python metadataCollector.py \
     #         --inputshp='/Users/senseablecity/Dropbox (MIT)/ResearchProj/treepedia/cities-proj/Oakland/OaklandSlowStreets/SlowStreets_points/SS_20m.shp' \
     #         --outdir='/Users/senseablecity/Dropbox (MIT)/ResearchProj/treepedia/cities-proj/Oakland/OaklandSlowStreets/SlowStreets_points' \
-    #         --key='AIzaSyBrqEg7VCawLlnyoWW2MrXKIuPtv13MRj8'
-    
-    
+    #         --key=''
+
