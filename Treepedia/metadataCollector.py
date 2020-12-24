@@ -148,7 +148,7 @@ if __name__ == "__main__":
 
     print(inputshp, outdir, key)
     GSVpanoMetadataCollector(inputshp, 1000, outdir, key)
-
+    
 
     ## call example
     # python metadataCollector.py \
